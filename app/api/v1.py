@@ -2,9 +2,12 @@ import shutil
 from pathlib import Path
 
 from fastapi import APIRouter, UploadFile
+from fastapi.responses import StreamingResponse
 
 from app.config import settings
 from app.ingestion import ingest_document
+from app.rag import answer, answer_stream
+from app.schemas.chat import ChatRequest, ChatResponse, Source
 from app.schemas.document import DocumentResponse, DocumentUploadResponse
 from app.schemas.search import SearchRequest, SearchResponse, SearchResult
 from app.store import list_documents
@@ -51,4 +54,22 @@ async def search_documents(req: SearchRequest):
     return SearchResponse(
         query=req.query,
         results=[SearchResult(**r) for r in results],
+    )
+
+
+@router.post("/chat", response_model=ChatResponse)
+async def chat(req: ChatRequest):
+    result = answer(req.message)
+    return ChatResponse(
+        answer=result["answer"],
+        sources=[Source(**s) for s in result["sources"]],
+        conversation_id=req.conversation_id or "",
+    )
+
+
+@router.post("/chat/stream")
+async def chat_stream(req: ChatRequest):
+    return StreamingResponse(
+        answer_stream(req.message),
+        media_type="text/event-stream",
     )
