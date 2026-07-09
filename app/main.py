@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from app.api.v1 import router as v1_router
 from app.config import settings
 
 app = FastAPI(
@@ -24,6 +25,9 @@ async def root():
         "version": settings.app_version,
         "status": "running",
     }
+
+
+app.include_router(v1_router)
 
 
 @app.get("/health")
