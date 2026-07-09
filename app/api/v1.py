@@ -6,7 +6,9 @@ from fastapi import APIRouter, UploadFile
 from app.config import settings
 from app.ingestion import ingest_document
 from app.schemas.document import DocumentResponse, DocumentUploadResponse
+from app.schemas.search import SearchRequest, SearchResponse, SearchResult
 from app.store import list_documents
+from app.vector_store import search as vector_search
 
 router = APIRouter(prefix="/api/v1")
 
@@ -41,3 +43,12 @@ async def upload_document(file: UploadFile):
 @router.get("/documents")
 async def get_documents():
     return list_documents()
+
+
+@router.post("/search", response_model=SearchResponse)
+async def search_documents(req: SearchRequest):
+    results = vector_search(req.query, top_k=req.top_k)
+    return SearchResponse(
+        query=req.query,
+        results=[SearchResult(**r) for r in results],
+    )
