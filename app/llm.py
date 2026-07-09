@@ -4,7 +4,14 @@ from openai import OpenAI
 
 from app.config import settings
 
-_client = OpenAI(api_key=settings.openai_api_key)
+_client: OpenAI | None = None
+
+
+def _get_client() -> OpenAI:
+    global _client
+    if _client is None:
+        _client = OpenAI(api_key=settings.openai_api_key)
+    return _client
 
 
 def _build_messages(system: str, prompt: str) -> list[dict]:
@@ -21,7 +28,7 @@ def generate_answer(
     temperature: float = 0.3,
     max_tokens: int = 1024,
 ) -> str:
-    response = _client.chat.completions.create(
+    response = _get_client().chat.completions.create(
         model=model or settings.openai_model,
         messages=_build_messages(system_prompt, prompt),
         temperature=temperature,
@@ -37,7 +44,7 @@ def generate_answer_stream(
     temperature: float = 0.3,
     max_tokens: int = 1024,
 ) -> Generator[str, None, None]:
-    stream = _client.chat.completions.create(
+    stream = _get_client().chat.completions.create(
         model=model or settings.openai_model,
         messages=_build_messages(system_prompt, prompt),
         temperature=temperature,
