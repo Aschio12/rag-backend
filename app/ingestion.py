@@ -4,6 +4,7 @@ from pathlib import Path
 from app.chunker import chunk_text
 from app.loaders import load_document
 from app.store import add_document
+from app.vector_store import add_chunks
 
 
 def ingest_document(file_path: str) -> dict:
@@ -12,6 +13,8 @@ def ingest_document(file_path: str) -> dict:
 
     text = load_document(file_path)
     chunks = chunk_text(text)
+
+    add_chunks(doc_id, chunks)
 
     doc = {
         "id": doc_id,
