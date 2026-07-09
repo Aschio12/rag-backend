@@ -1,0 +1,26 @@
+services:
+  backend:
+    build: .
+    ports:
+      - "8000:8000"
+    volumes:
+      - chroma_data:/app/chroma_data
+      - uploads:/app/uploads
+    env_file:
+      - .env
+    environment:
+      - CHROMA_PERSIST_DIR=/app/chroma_data
+      - UPLOAD_DIR=/app/uploads
+
+  frontend:
+    build: ../rag-frontend
+    ports:
+      - "3000:3000"
+    environment:
+      - NEXT_PUBLIC_API_URL=http://localhost:8000
+    depends_on:
+      - backend
+
+volumes:
+  chroma_data:
+  uploads:
