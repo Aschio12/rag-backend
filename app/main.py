@@ -1,4 +1,6 @@
 import logging
+from contextlib import asynccontextmanager
+from pathlib import Path
 
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
@@ -14,9 +16,20 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    Path(settings.upload_dir).mkdir(exist_ok=True)
+    Path(settings.chroma_persist_dir).mkdir(exist_ok=True)
+    logger.info(f"Upload directory: {settings.upload_dir}")
+    logger.info(f"Chroma persist directory: {settings.chroma_persist_dir}")
+    yield
+
+
 app = FastAPI(
     title=settings.app_name,
     version=settings.app_version,
+    lifespan=lifespan,
 )
 
 app.add_middleware(
