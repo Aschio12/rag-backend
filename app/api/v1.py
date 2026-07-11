@@ -209,7 +209,15 @@ async def legacy_list_documents():
 # ---- Search & Chat (existing, updated) ----
 @router.post("/search")
 async def search_documents(req: SearchRequest):
-    results = vector_search(req.query, top_k=req.top_k or 5)
+    from app.database import list_documents_meta
+
+    results = vector_search(req.query, top_k=req.top_k or 5, hybrid=req.hybrid)
+    # If a collection_id is specified, filter results to only those documents in that collection
+    if req.collection_id:
+        collection_docs = list_documents_meta(collection_id=req.collection_id)
+        valid_doc_ids = {d["id"] for d in collection_docs}
+        results = [r for r in results if r.get("doc_id") in valid_doc_ids]
+
     return SearchResponse(
         query=req.query,
         results=[
@@ -219,6 +227,7 @@ async def search_documents(req: SearchRequest):
                 score=r["score"],
                 doc_id=r["doc_id"],
                 page_number=r.get("page_number", 0),
+                filename=r.get("filename", ""),
             )
             for r in results
         ],
