@@ -1,7 +1,7 @@
 import sqlite3
 import uuid
 import json
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Optional
 
@@ -79,7 +79,7 @@ def init_db():
 def create_kb(name: str, description: str = "") -> dict:
     conn = _get_conn()
     kb_id = str(uuid.uuid4())
-    now = datetime.utcnow().isoformat()
+    now = datetime.now(timezone.UTC).isoformat()
     conn.execute(
         "INSERT INTO knowledge_bases (id, name, description, created_at, updated_at) VALUES (?, ?, ?, ?, ?)",
         (kb_id, name, description, now, now),
@@ -106,7 +106,7 @@ def get_kb(kb_id: str) -> Optional[dict]:
 
 def update_kb(kb_id: str, name: Optional[str] = None, description: Optional[str] = None) -> Optional[dict]:
     conn = _get_conn()
-    now = datetime.utcnow().isoformat()
+    now = datetime.now(timezone.UTC).isoformat()
     updates = []
     params = []
     if name is not None:
@@ -139,7 +139,7 @@ def delete_kb(kb_id: str) -> bool:
 def create_collection(kb_id: str, name: str, description: str = "") -> dict:
     conn = _get_conn()
     col_id = str(uuid.uuid4())
-    now = datetime.utcnow().isoformat()
+    now = datetime.now(timezone.UTC).isoformat()
     conn.execute(
         "INSERT INTO collections (id, kb_id, name, description, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)",
         (col_id, kb_id, name, description, now, now),
@@ -191,7 +191,7 @@ def add_document_meta(
     metadata: dict | None = None,
 ) -> dict:
     conn = _get_conn()
-    now = datetime.utcnow().isoformat()
+    now = datetime.now(timezone.UTC).isoformat()
     conn.execute(
         """INSERT INTO documents
            (id, collection_id, filename, file_path, file_type, page_count, chunk_count, status, metadata, created_at, updated_at)
@@ -229,7 +229,7 @@ def get_document_meta(doc_id: str) -> Optional[dict]:
 
 def update_document_status(doc_id: str, status: str, error: str = "", chunk_count: Optional[int] = None):
     conn = _get_conn()
-    now = datetime.utcnow().isoformat()
+    now = datetime.now(timezone.UTC).isoformat()
     updates = ["status=?", "updated_at=?"]
     params = [status, now]
     if error:
