@@ -49,24 +49,28 @@ class AgentOrchestrator:
         }
 
         start_time = time.time()
+        step_start_time = start_time
 
         for agent_key, step_label, step_desc in self.steps:
             agent = self.agents[agent_key]
 
             # Emit step start
+            step_start_time = time.time()
             yield self._format_event("step_start", {
                 "step": agent_key,
                 "label": step_label,
                 "description": step_desc,
+                "total_time": round(time.time() - start_time, 2),
             })
 
             try:
                 state = await agent.run(state)
-                elapsed = time.time() - start_time
+                step_duration = round(time.time() - step_start_time, 2)
                 yield self._format_event("step_complete", {
                     "step": agent_key,
                     "label": step_label,
-                    "duration": round(elapsed, 2),
+                    "duration": step_duration,
+                    "total_time": round(time.time() - start_time, 2),
                 })
             except Exception as e:
                 yield self._format_event("step_error", {
