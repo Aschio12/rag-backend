@@ -21,6 +21,7 @@ logger = logging.getLogger(__name__)
 async def lifespan(app: FastAPI):
     Path(settings.upload_dir).mkdir(exist_ok=True)
     Path(settings.chroma_persist_dir).mkdir(exist_ok=True)
+    init_db()
     logger.info(f"Upload directory: {settings.upload_dir}")
     logger.info(f"Chroma persist directory: {settings.chroma_persist_dir}")
     yield
