@@ -98,7 +98,26 @@ class TestOrchestrator:
         ]
 
     @pytest.mark.asyncio
+    async def test_orchestrator_error_handling(self):
+        """Test that orchestrator handles errors gracefully and returns a complete event."""
+        orch = AgentOrchestrator()
+        events = []
+        async for event_str in orch.run(query="", conversation_id=""):
+            import json
+            data = json.loads(event_str[6:])
+            events.append(data)
+
+        # Should have at least start + error + complete
+        assert len(events) >= 3
+        assert events[-1]["event"] == "complete"
+        assert "answer" in events[-1]
+
+    @pytest.mark.asyncio
     async def test_orchestrator_streams_events(self):
+        import os
+        if not os.environ.get("OPENAI_API_KEY"):
+            pytest.skip("OPENAI_API_KEY not set, skipping integration test")
+
         orch = AgentOrchestrator()
         events = []
         async for event_str in orch.run(query="What is machine learning?", conversation_id="test_orch"):

@@ -74,6 +74,18 @@ class AgentOrchestrator:
                     "label": step_label,
                     "error": str(e),
                 })
+                # Skip remaining agents on error, go directly to finalize
+                if agent_key != "memory":
+                    state["current_step"] = "memory"
+                    state["draft_answer"] = (
+                        f"An error occurred during the '{step_label}' step: {str(e)}\n\n"
+                        "I'll provide what I can based on the information gathered so far."
+                    )
+                    try:
+                        state = await self.agents["memory"].run(state)
+                    except Exception:
+                        pass
+                    break
 
         # Emit final answer
         total_time = time.time() - start_time
