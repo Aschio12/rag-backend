@@ -265,6 +265,27 @@ async def chat_stream(req: ChatRequest):
     return StreamingResponse(generate(), media_type="text/event-stream")
 
 
+# ---- Agentic AI Chat ----
+from app.agents.orchestrator import AgentOrchestrator
+
+_agent_orchestrator = AgentOrchestrator()
+
+
+@router.post("/agent/chat")
+async def agent_chat(req: ChatRequest):
+    """Agentic AI chat that runs multiple collaborative agents before responding."""
+    from fastapi.responses import StreamingResponse
+
+    return StreamingResponse(
+        _agent_orchestrator.run(
+            query=req.message,
+            conversation_id=req.conversation_id or "",
+            hybrid=req.hybrid,
+        ),
+        media_type="text/event-stream",
+    )
+
+
 # ---- Preview ----
 @router.get("/documents/{doc_id}/preview")
 async def document_preview(doc_id: str, page: int = Query(0)):
