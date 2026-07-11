@@ -8,6 +8,7 @@ from fastapi.responses import JSONResponse
 
 from app.api.v1 import router as v1_router
 from app.config import settings
+from app.database import init_db
 from app.exceptions import RAGException
 
 logging.basicConfig(
